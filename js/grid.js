@@ -1,6 +1,5 @@
 function Grid(size) {
   this.size = size;
-
   this.cells = [];
 
   this.build();
@@ -82,3 +81,17 @@ Grid.prototype.withinBounds = function (position) {
   return position.x >= 0 && position.x < this.size &&
          position.y >= 0 && position.y < this.size;
 };
+
+Grid.prototype.sum = function () {
+  var sum = 0;
+  for (var x = 0; x < this.size; x++) {
+    for (var y = 0; y < this.size; y++) {
+      var val = this.cells[x][y] && this.cells[x][y].value;
+      sum += (typeof val == "number") ? val : 0;
+    }
+  }
+  if (isNaN(sum)) {
+    sum = 0;
+  }
+  return sum;
+}

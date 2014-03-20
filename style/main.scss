@@ -3,20 +3,24 @@
 
 $field-width: 500px;
 $grid-spacing: 15px;
-$grid-row-cells: 4;
+$grid-row-cells: 6;
 $tile-size: ($field-width - $grid-spacing * ($grid-row-cells + 1)) / $grid-row-cells;
 $tile-border-radius: 3px;
 
 $mobile-threshold: $field-width + 20px;
 
-$text-color: #776E65;
+$text-color: #C8FFB3;
 $bright-text-color: #f9f6f2;
+$dark-text-color: #1F2223;
 
 $tile-color: #eee4da;
 $tile-gold-color: #edc22e;
+$tile-blue-color: #2ec2ed;
+$tile-purple-color: #8a3eed;
 $tile-gold-glow-color: lighten($tile-gold-color, 15%);
+$tile-blue-glow-color: lighten($tile-blue-color, 15%);
 
-$game-container-background: #bbada0;
+$game-container-background: #116340;
 
 $transition-speed: 100ms;
 
@@ -24,7 +28,7 @@ html, body {
   margin: 0;
   padding: 0;
 
-  background: #faf8ef;
+  background: #0A3021;
   color: $text-color;
   font-family: "Clear Sans", "Helvetica Neue", Arial, sans-serif;
   font-size: 18px;
@@ -192,12 +196,14 @@ hr {
     .game-message {
       display: none;
 
+      color: $dark-text-color;
+
       position: absolute;
       top: 0;
       right: 0;
       bottom: 0;
       left: 0;
-      background: rgba($tile-color, .5);
+      background: rgba($tile-color, .7);
       z-index: 100;
 
       text-align: center;
@@ -231,7 +237,7 @@ hr {
       @include animation-fill-mode(both);
 
       &.game-won {
-        background: rgba($tile-gold-color, .5);
+        background: rgba(#8a3eed, .5);
         color: $bright-text-color;
 
 	a.keep-playing-button {
@@ -318,7 +324,7 @@ hr {
     font-weight: bold;
     z-index: 10;
 
-    font-size: 55px;
+    font-size: 44px;
   }
 
   // Movement transition
@@ -332,8 +338,8 @@ hr {
   $limit: 11;
 
   // Colors for all 11 states, false = no special color
-  $special-colors: false false, // 2
-                   false false, // 4
+  $special-colors: #fde4be false, // 2
+                   #fabe88 false, // 4
                    #f78e48 true, // 8
                    #fc5e2e true, // 16
                    #ff3333 true, // 32
@@ -364,6 +370,8 @@ hr {
 
       @if $bright-color {
         color: $bright-text-color;
+      } @else {
+        color: $dark-text-color;
       }
 
       // Set background
@@ -379,17 +387,93 @@ hr {
 
       // Adjust font size for bigger numbers
       @if $power >= 100 and $power < 1000 {
-        font-size: 45px;
+        font-size: 36px;
 
         // Media queries placed here to avoid carrying over the rest of the logic
         @include smaller($mobile-threshold) {
-          font-size: 25px;
+          font-size: 20px;
         }
       } @else if $power >= 1000 {
-        font-size: 35px;
+        font-size: 28px;
 
         @include smaller($mobile-threshold) {
-          font-size: 15px;
+          font-size: 12px;
+        }
+      }
+    }
+
+    $exponent: $exponent + 1;
+  }
+
+  $exponent: 1;
+  // Colors for all 11 states, false = no special color
+  $special-colors-neg: #fde4be false, // 2
+                   #fabe88 false, // 4
+                   #488ef7 true, // 8
+                   #117efc true, // 16
+                   #0863ff true, // 32
+                   #0050ff true, // 64
+                   false true, // 128
+                   false true, // 256
+                   false true, // 512
+                   false true, // 1024
+                   false true; // 2048
+
+  // Build NEGATIVE tile colors
+  @while $exponent <= $limit {
+    $power: pow($base, $exponent);
+
+    &.tile--#{$power} .tile-inner {
+      // Calculate base background color
+      $blue-percent: ($exponent - 1) / ($limit - 1) * 100;
+      $mixed-background: mix($tile-blue-color, $tile-color, $blue-percent);
+
+      $nth-color: nth($special-colors-neg, $exponent);
+
+      $special-background: nth($nth-color, 1);
+      $bright-color: nth($nth-color, 2);
+
+      @if $special-background {
+        $mixed-background: mix($special-background, $mixed-background, 55%);
+      }
+
+      @if $bright-color {
+        color: $bright-text-color;
+      } @else {
+        color: $dark-text-color;
+      }
+
+      // Set background
+      background: $mixed-background;
+
+      // Add glow
+      $glow-opacity: max($exponent - 4, 0) / ($limit - 4);
+
+      @if not $special-background {
+        box-shadow: 0 0 30px 10px rgba($tile-blue-glow-color, $glow-opacity / 1.8),
+                    inset 0 0 0 1px rgba(white, $glow-opacity / 3);
+      }
+
+      // Adjust font size for bigger numbers
+      @if $power >= 10 and $power < 100 {
+        font-size: 36px;
+
+        // Media queries placed here to avoid carrying over the rest of the logic
+        @include smaller($mobile-threshold) {
+          font-size: 20px;
+        }
+      } @else if $power >= 100 and $power < 1000 {
+        font-size: 28px;
+
+        // Media queries placed here to avoid carrying over the rest of the logic
+        @include smaller($mobile-threshold) {
+          font-size: 12px;
+        }
+      } @else if $power >= 1000 {
+        font-size: 20px;
+
+        @include smaller($mobile-threshold) {
+          font-size: 8px;
         }
       }
     }
@@ -400,14 +484,84 @@ hr {
   // Super tiles (above 2048)
   &.tile-super .tile-inner {
     color: $bright-text-color;
-    background: mix(#333, $tile-gold-color, 95%);
+    background: #0F9FC9;
 
-    font-size: 30px;
+    font-size: 24px;
 
     @include smaller($mobile-threshold) {
       font-size: 10px;
     }
   }
+  // Super tiles (below -2048)
+  &.tile--super .tile-inner {
+    color: $bright-text-color;
+    background: #0F9FC9;
+
+    font-size: 16px;
+
+    @include smaller($mobile-threshold) {
+      font-size: 8px;
+    }
+  }
+
+  // Super tiles (past M)
+  &.tile-superlative .tile-inner {
+    color: $bright-text-color;
+    background: #3000D0;
+  }
+
+  &.tile-A .tile-inner {
+    color: #320023;
+    background: #FFE7FF;
+    box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0), inset 0 0 0 1px rgba(255, 255, 255, 0); }
+  &.tile-B .tile-inner {
+    color: #320023;
+    background: #FFD7FF;
+    box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0), inset 0 0 0 1px rgba(255, 255, 255, 0); }
+  &.tile-C .tile-inner {
+    color: #320023;
+    background: #FFA7FF;
+    box-shadow: 0 0 30px 10px rgba(243, 215, 116, 0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.02); }
+  &.tile-D .tile-inner {
+    color: #f9f6f2;
+    background: #DB80E8;
+    box-shadow: 0 0 30px 10px rgba(#DB80E8, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.03); }
+  &.tile-E .tile-inner {
+    color: #f9f6f2;
+    background: #D257FF;
+    box-shadow: 0 0 30px 10px rgba(#D257FF, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.06); }
+  &.tile-F .tile-inner {
+    color: #f9f6f2;
+    background: #CD65E8;
+    box-shadow: 0 0 30px 10px rgba(#CD65E8, 0.14), inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
+  &.tile-G .tile-inner {
+    color: #f9f6f2;
+    background: #BE43FF;
+    box-shadow: 0 0 30px 10px rgba(#BE43FF, 0.2381), inset 0 0 0 1px rgba(255, 255, 255, 0.14286); }
+  &.tile-H .tile-inner {
+    color: #f9f6f2;
+    background: #AB3DFF;
+    box-shadow: 0 0 30px 10px rgba(#AB3DFF, 0.31746), inset 0 0 0 1px rgba(255, 255, 255, 0.19048); }
+  &.tile-I .tile-inner {
+    color: #f9f6f2;
+    background: #8D2CE8;
+    box-shadow: 0 0 30px 10px rgba(#8D2CE8, 0.39683), inset 0 0 0 1px rgba(255, 255, 255, 0.2381); }
+  &.tile-J .tile-inner {
+    color: #f9f6f2;
+    background: #8221FF;
+    box-shadow: 0 0 30px 10px rgba(#8221FF, 0.47619), inset 0 0 0 1px rgba(255, 255, 255, 0.28571); }
+  &.tile-K .tile-inner {
+    color: #f9f6f2;
+    background: #5E15E8;
+    box-shadow: 0 0 30px 10px rgba(#5E15E8, 0.55556), inset 0 0 0 1px rgba(255, 255, 255, 0.33333); }
+  &.tile-L .tile-inner {
+    color: #f9f6f2;
+    background: #4F08FF;
+    box-shadow: 0 0 30px 10px rgba(#5E15E8, 0.65), inset 0 0 0 1px rgba(255, 255, 255, 0.4); }
+  &.tile-M .tile-inner {
+    color: #f9f6f2;
+    background: #3F00DF;
+    box-shadow: 0 0 30px 10px rgba(#5E15E8, 0.78), inset 0 0 0 1px rgba(255, 255, 255, 0.5); }
 }
 
 @include keyframes(appear) {
@@ -459,7 +613,7 @@ hr {
   // Redefine variables for smaller screens
   $field-width: 280px;
   $grid-spacing: 10px;
-  $grid-row-cells: 4;
+  $grid-row-cells: 6;
   $tile-size: ($field-width - $grid-spacing * ($grid-row-cells + 1)) / $grid-row-cells;
   $tile-border-radius: 3px;
 
